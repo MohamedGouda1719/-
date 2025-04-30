@@ -1,0 +1,38 @@
+name: Build Android Project
+
+# هذا سيجعل الإجراء قابلاً للتشغيل يدويًا
+on:
+  workflow_dispatch:  # هذا التريغر يجعل الإجراء يدويًا فقط
+
+jobs:
+  build:
+    runs-on: ubuntu-latest  # يمكنك تغيير البيئة إلى macOS أو Windows إذا لزم الأمر.
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4  # تحميل الكود من المستودع
+
+      - name: Setup JDK 11 (أو أي إصدار مناسب)
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adoptopenjdk'
+
+      - name: Read project name from text file
+        id: read_project
+        run: |
+          PROJECT_NAME=$(cat project.txt)  # قراءة اسم المشروع من الملف
+          echo "PROJECT_NAME=$PROJECT_NAME" >> $GITHUB_ENV  # تعيينه كمتغير بيئة
+
+      - name: Download project source (ZIP)
+        run: |
+          curl -L -o ${{ env.PROJECT_NAME }} https://github.com/username/my-repo/releases/download/v1.0/${{ env.PROJECT_NAME }}
+        
+      - name: Unzip project
+        run: |
+          unzip ${{ env.PROJECT_NAME }} -d ./project
+
+      - name: Build the project with Gradle
+        run: |
+          cd ./project
+          ./gradlew build  # افترض أن المشروع يستخدم Gradle للبناء
